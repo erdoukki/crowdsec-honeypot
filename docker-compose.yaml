@@ -1,0 +1,32 @@
+version: "3"
+services:
+  crowdsec_sshd:
+    image: gregewing/sshd
+    container_name: crowdsec-sshd
+    restart: unless-stopped
+    volumes:
+      - ${BASE_PATH}/openssh-server/auth.log:/var/log/auth.log
+    ports:
+      - 22
+
+    networks:
+      macvlan-dmz:
+        ipv4_address: ${SSHD_IP}
+  crowdsec_agent:
+    image: crowdsecurity/crowdsec:latest
+    restart: unless-stopped
+    volumes:
+      - ${BASE_PATH}/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+      - ${BASE_PATH}/openssh-server/auth.log:/var/log/auth.log
+      - crowdsec-db:/var/lib/crowdsec/data/
+      - crowdsec-config:/etc/crowdsec/
+    networks:
+      macvlan-dmz:
+        ipv4_address: ${CROWDSEC_IP}
+networks:
+#'macvlan-dmz' is the name of the external network on my docker host. Change this to suit your network.
+  macvlan-dmz:
+    external: true
+volumes:
+  crowdsec-db:
+  crowdsec-config:
